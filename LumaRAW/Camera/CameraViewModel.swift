@@ -128,7 +128,7 @@ final class CameraViewModel: ObservableObject {
 
     // Zoom / flash / timer / burst
     @Published var zoomFactor: Double = 1 { didSet { camera.setZoom(CGFloat(zoomFactor)) } }
-    @Published var flashMode: AVCaptureFlashMode = .auto
+    @Published var flashMode: AVCaptureDevice.FlashMode = .auto
     @Published var timerSeconds: Int = 0
     @Published var burstEnabled = false
 

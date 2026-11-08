@@ -40,11 +40,11 @@ struct SettingsView: View {
                     }
                     Picker("Flash", selection: Binding(
                         get: { viewModel.flashMode.rawValue },
-                        set: { viewModel.flashMode = AVCaptureFlashMode(rawValue: $0) ?? .auto }
+                        set: { viewModel.flashMode = AVCaptureDevice.FlashMode(rawValue: $0) ?? .auto }
                     )) {
-                        Text("Auto").tag(AVCaptureFlashMode.auto.rawValue)
-                        Text("On").tag(AVCaptureFlashMode.on.rawValue)
-                        Text("Off").tag(AVCaptureFlashMode.off.rawValue)
+                        Text("Auto").tag(AVCaptureDevice.FlashMode.auto.rawValue)
+                        Text("On").tag(AVCaptureDevice.FlashMode.on.rawValue)
+                        Text("Off").tag(AVCaptureDevice.FlashMode.off.rawValue)
                     }
                     Picker("Timer", selection: $viewModel.timerSeconds) {
                         Text("Off").tag(0)

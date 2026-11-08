@@ -1,4 +1,5 @@
 import AVFoundation
+import AVKit
 import MetalKit
 import SwiftUI
 import UIKit
@@ -34,11 +35,17 @@ struct PreviewLayerView: UIViewRepresentable {
         view.previewLayer.videoGravity = .resizeAspectFill
         view.backgroundColor = .black
         if #available(iOS 17.2, *) {
-            let interaction = AVCaptureEventInteraction { event in
-                if event.phase == .began {
+            // Primary = volume down / Camera Control; secondary = volume
+            // up (handled identically — both are shutters here).
+            let interaction = AVCaptureEventInteraction(primary: { event in
+                if event.phase == .ended {
                     context.coordinator.onVolumeCapture?()
                 }
-            }
+            }, secondary: { event in
+                if event.phase == .ended {
+                    context.coordinator.onVolumeCapture?()
+                }
+            })
             view.addInteraction(interaction)
         }
         return view

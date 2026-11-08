@@ -478,7 +478,7 @@ final class CameraManager: NSObject {
     /// arbitrary queue — callers hop to where they need.
     func capturePhoto(rawFormat: OSType?,
                       codec: AVVideoCodecType?,
-                      flash: AVCaptureFlashMode,
+                      flash: AVCaptureDevice.FlashMode,
                       useLargestDimensions: Bool,
                       completion: @escaping (AVCapturePhoto?, Error?) -> Void) {
         sessionQueue.async { [weak self] in

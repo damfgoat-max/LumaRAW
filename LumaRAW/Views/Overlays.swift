@@ -61,7 +61,7 @@ struct AspectGuideView: View {
                     path.addRect(CGRect(origin: .zero, size: size))
                     path.addRect(rect)
                 }
-                .fill(Color.black.opacity(0.45), eoFill: true)
+                .fill(Color.black.opacity(0.45), style: FillStyle(eoFill: true))
                 Rectangle()
                     .path(in: rect)
                     .stroke(Color.white.opacity(0.6), lineWidth: 1)
