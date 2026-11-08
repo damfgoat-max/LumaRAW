@@ -1,0 +1,59 @@
+# LumaRAW — XcodeGen project definition.
+# The .xcodeproj is generated in CI (`xcodegen generate`), so no Mac/Xcode is
+# needed locally to create or edit the project structure.
+# To rename the app: change PRODUCT_NAME / the target name here and
+# AppConstants.appName in LumaRAW/App/AppConstants.swift (one place each).
+name: LumaRAW
+options:
+  bundleIdPrefix: com.lumaraw
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+targets:
+  LumaRAW:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: LumaRAW
+    info:
+      path: LumaRAW/Resources/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lumaraw.app
+        PRODUCT_NAME: LumaRAW
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: "YES"
+    scheme:
+      testTargets:
+        - LumaRAWTests
+  LumaRAWTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: LumaRAWTests
+    dependencies:
+      - target: LumaRAW
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lumaraw.app.tests
+        GENERATE_INFOPLIST_FILE: "YES"
+schemes:
+  LumaRAW:
+    build:
+      targets:
+        LumaRAW: all
+        LumaRAWTests: [test]
+    test:
+      targets:
+        - LumaRAWTests

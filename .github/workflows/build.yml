@@ -1,0 +1,122 @@
+name: Build LumaRAW
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-14
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "15.4"
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build (code signing disabled)
+        run: |
+          xcodebuild -project LumaRAW.xcodeproj \
+            -scheme LumaRAW \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH=$(find build/DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' | head -1)
+          echo "Packaging $APP_PATH"
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r LumaRAW.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LumaRAW-ipa
+          path: LumaRAW.ipa
+
+  unit-tests:
+    name: Unit tests (simulator, non-blocking)
+    runs-on: macos-14
+    # Per spec: run the LUTParser tests when a simulator is available, but
+    # never let a simulator problem fail the deliverable device build.
+    continue-on-error: true
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "15.4"
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run LUTParser unit tests
+        run: |
+          xcodebuild test -project LumaRAW.xcodeproj \
+            -scheme LumaRAW \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+  # ---------------------------------------------------------------------------
+  # OPTIONAL: signed build + TestFlight upload (disabled — uncomment to use).
+  #
+  # Required repository secrets (Settings -> Secrets and variables -> Actions):
+  #   BUILD_CERTIFICATE_BASE64   Base64-encoded .p12 distribution certificate,
+  #                              e.g. `base64 -i Certificates.p12 | pbcopy`
+  #   P12_PASSWORD               Password for the .p12 certificate above
+  #   KEYCHAIN_PASSWORD          Any throwaway password for the temp keychain
+  #   PROVISIONING_PROFILE_BASE64  Base64-encoded .mobileprovision App Store
+  #                              provisioning profile for com.lumaraw.app,
+  #                              e.g. `base64 -i LumaRAW.mobileprovision | pbcopy`
+  #   APP_STORE_CONNECT_API_KEY_ID        App Store Connect API key ID
+  #   APP_STORE_CONNECT_API_ISSUER_ID     App Store Connect API issuer ID
+  #   APP_STORE_CONNECT_API_KEY_CONTENT   Contents of the AuthKey_<id>.p8 file
+  #
+  # signed-and-upload:
+  #   name: Signed build + TestFlight
+  #   runs-on: macos-14
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: maxim-lobanov/setup-xcode@v1
+  #       with:
+  #         xcode-version: "15.4"
+  #     - run: brew install xcodegen
+  #     - run: xcodegen generate
+  #     - name: Import signing certificate
+  #       uses: apple-actions/import-codesign-certs@v3
+  #       with:
+  #         p12-file-base64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+  #         p12-password: ${{ secrets.P12_PASSWORD }}
+  #     - name: Install provisioning profile
+  #       run: |
+  #         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+  #         echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode \
+  #           > ~/Library/MobileDevice/Provisioning\ Profiles/LumaRAW.mobileprovision
+  #     - name: Archive + export + upload to TestFlight
+  #       uses: apple-actions/upload-testflight-build@v1
+  #       with:
+  #         app-path: build/LumaRAW.xcarchive
+  #         issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+  #         api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+  #         api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+  # ---------------------------------------------------------------------------
