@@ -72,9 +72,11 @@ jobs:
 
       - name: Run LUTParser unit tests
         run: |
+          SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone' | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+          echo "Running tests on simulator $SIM_ID"
           xcodebuild test -project LumaRAW.xcodeproj \
             -scheme LumaRAW \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "platform=iOS Simulator,id=$SIM_ID" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 
   # ---------------------------------------------------------------------------
