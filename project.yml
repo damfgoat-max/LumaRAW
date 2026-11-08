@@ -24,10 +24,13 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: LumaRAW
-    info:
-      path: LumaRAW/Resources/Info.plist
+    # NOTE: no `info:` key on purpose — XcodeGen would REGENERATE (and
+    # overwrite) the plist at that path, dropping the custom permission /
+    # document-type keys. The hand-written plist is used verbatim instead:
     settings:
       base:
+        INFOPLIST_FILE: LumaRAW/Resources/Info.plist
+        GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: com.lumaraw.app
         PRODUCT_NAME: LumaRAW
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
